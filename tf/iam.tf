@@ -6,9 +6,32 @@ data "aws_iam_policy_document" "s3_access_policy" {
   }
 }
 
+# Nueva política para CloudWatch Agent
+data "aws_iam_policy_document" "cloudwatch_agent_policy" {
+  statement {
+    actions = [
+      "cloudwatch:PutMetricData",
+      "ec2:DescribeVolumes",
+      "ec2:DescribeTags",
+      "logs:PutLogEvents",
+      "logs:CreateLogGroup",
+      "logs:CreateLogStream",
+      "logs:DescribeLogStreams",
+      "logs:DescribeLogGroups"
+    ]
+    resources = ["*"]
+    effect    = "Allow"
+  }
+}
+
 resource "aws_iam_policy" "s3_access_policy" {
   name   = "s3-access-policy"
   policy = data.aws_iam_policy_document.s3_access_policy.json
+}
+
+resource "aws_iam_policy" "cloudwatch_agent_policy" {
+  name   = "cloudwatch-agent-policy"
+  policy = data.aws_iam_policy_document.cloudwatch_agent_policy.json
 }
 
 resource "aws_iam_role" "ec2_role" {
@@ -33,6 +56,11 @@ EOF
 resource "aws_iam_role_policy_attachment" "attach_s3_access_policy" {
   role       = aws_iam_role.ec2_role.name
   policy_arn = aws_iam_policy.s3_access_policy.arn
+}
+
+resource "aws_iam_role_policy_attachment" "attach_cloudwatch_agent_policy" {
+  role       = aws_iam_role.ec2_role.name
+  policy_arn = aws_iam_policy.cloudwatch_agent_policy.arn
 }
 
 resource "aws_iam_instance_profile" "ec2_instance_profile" {
