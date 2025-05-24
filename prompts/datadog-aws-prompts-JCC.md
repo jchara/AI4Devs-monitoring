@@ -87,8 +87,30 @@ Error: creating S3 Bucket (ai4devs-project-code-bucket): operation error S3: Cre
 ```
 La implementación de terraform fue exitosa, verifica una última vez la implementación para ver si hay margen de mejora en configuraciones de seguridad.
 ```
+### PROMPT 7: Implementación de Alertas de Datadog
+```
+El proyecto ya tiene implementado el dashboard en Datadog, ahora necesito crear alertas para ser notificado de problemas en la infraestructura.
 
-### PROMPT 7: Documentación del Proyecto
+Como experto en DevSecOps, necesito que implementes alertas en Datadog para monitorear:
+
+1. **CPU Alto**: Alerta cuando el uso de CPU en las instancias EC2 supere el 80%
+2. **Instancia Caída**: Alerta cuando una instancia EC2 no reporte métricas (posible caída)
+3. **Memoria Alta**: Alerta cuando el uso de memoria supere el 85%
+4. **Disco Lleno**: Alerta cuando el uso de disco supere el 90%
+
+Para cada alerta incluye:
+- Umbrales de warning y critical apropiados
+- Mensajes descriptivos con contexto del problema
+- Tags para organización (environment, team, project)
+- Configuración de renotificación
+- Timeouts apropiados
+
+Las alertas deben ser configuradas mediante Terraform usando recursos `datadog_monitor` y seguir las mejores prácticas de monitoreo en producción.
+
+Después de implementar las alertas, explica dónde puedo verlas en la interfaz de Datadog.
+```
+
+### PROMPT 8: Documentación del Proyecto
 ```
 En @README.md crea un resumen y explicación de la implementación terraform y de los cambios realizados,
 
@@ -99,6 +121,7 @@ Incluye:
 - Desafíos encontrados durante la implementación y sus soluciones específicas
 - Comandos de despliegue y configuración
 - Recursos creados en AWS y Datadog
+- Alertas de monitoreo
 - Optimización de costos
 - Mejores prácticas de seguridad implementadas
 - Resultados obtenidos y funcionalidades operativas

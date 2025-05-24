@@ -12,6 +12,7 @@ Este proyecto implementa una integración completa entre AWS y Datadog utilizand
 - **Agentes Datadog** instalados automáticamente vía user_data
 - **Integración AWS-Datadog** con roles IAM específicos
 - **Dashboard personalizado** en Datadog para métricas de infraestructura
+- **Alertas de monitoreo** configuradas para CPU, memoria, disco e instancias caídas
 - **Bucket S3** para almacenamiento de artefactos
 - **CloudWatch Agent** para métricas adicionales
 
@@ -46,6 +47,7 @@ tf/
 ├── variables.tf                 # Definición de variables
 ├── terraform.tfvars            # Valores de variables (credenciales)
 ├── datadog.tf                  # Integración AWS-Datadog y dashboard
+├── alerts.tf                   # Alertas de monitoreo en Datadog
 ├── iam.tf                      # Roles y políticas IAM
 ├── ec2.tf                      # Instancias EC2 con configuración Datadog
 ├── s3.tf                       # Bucket S3 y objetos
@@ -94,6 +96,14 @@ tf/
 - **Configurado**: Encriptación AES256 por defecto
 - **Seguridad**: Bloqueo de acceso público
 - **Compatibilidad**: Eliminación de null_resource para Windows
+
+### 8. Alertas de Monitoreo (`alerts.tf`)
+- **Nuevo archivo**: Configuración de 4 alertas críticas para monitoreo
+- **CPU Alto**: Alerta cuando el uso supera 80% (warning: 70%)
+- **Instancia Caída**: Detección cuando EC2 no reporta métricas (10 min)
+- **Memoria Alta**: Alerta cuando el uso supera 85% (warning: 80%)
+- **Disco Lleno**: Alerta cuando el uso supera 90% (warning: 80%)
+- **Configuración**: Renotificación, timeouts y tags organizacionales
 
 ## ⚠️ Desafíos Encontrados y Soluciones
 
@@ -184,11 +194,16 @@ terraform apply -auto-approve
 
 ### Datadog
 - **Integración AWS** configurada
-- **Dashboard "AWS Infrastructure Monitoring"** con widgets:
-  - CPU Utilization por instancia
-  - Network In/Out por instancia
-  - Conteo total de instancias
+- **Dashboard "AWS Infrastructure Monitoring"** con widgets: 
+  - CPU Utilization por instancia 
+  - Network In/Out por instancia 
+  - Conteo total de instancias 
   - Top instancias por CPU
+- **4 Alertas de Monitoreo** configuradas: 
+  - High CPU Usage (>80%) 
+  - EC2 Instance Down or Unreachable 
+  - High Memory Usage (>85%) 
+  - High Disk Usage (>90%)
 
 ## 💰 Optimización de Costos
 
@@ -201,8 +216,33 @@ terraform apply -auto-approve
 ### Estimación de Costos
 **Costo mensual**: $0.00 (dentro de límites gratuitos)
 
+## 🚨 Sistema de Alertas Datadog
+### Alertas Configuradas
+#### 1. **High CPU Usage** (`datadog_monitor.high_cpu`)
+- **Trigger**: CPU > 80% por 5 minutos
+- **Warning**: CPU > 70%
+- **Renotificación**: Cada 60 minutos
+- **Query**: `avg(last_5m):avg:aws.ec2.cpuutilization{*} by {instanceid} > 80`
+#### 2. **Instance Down** (`datadog_monitor.instance_down`)
+- **Trigger**: Sin métricas por 10 minutos
+- **Detección**: Instancia parada, agente caído o problemas de red
+- **Renotificación**: Cada 30 minutos
+- **Query**: `avg(last_10m):avg:aws.ec2.cpuutilization{*} by {instanceid} < 0`
+#### 3. **High Memory Usage** (`datadog_monitor.high_memory`)
+- **Trigger**: Memoria disponible < 15%
+- **Warning**: Memoria disponible < 20%
+- **Renotificación**: Cada 60 minutos
+- **Query**: `avg(last_5m):avg:system.mem.pct_usable{*} by {host} < 15`
+#### 4. **High Disk Usage** (`datadog_monitor.high_disk`)
+- **Trigger**: Uso de disco > 90%
+- **Warning**: Uso de disco > 80%
+- **Renotificación**: Cada 60 minutos
+- **Query**: `avg(last_5m):avg:system.disk.in_use{*} by {host,device} > 0.9`
+### Ubicación de Alertas en Datadog
+- **Interfaz Web**: Monitors → Manage Monitors
+- **URL**: `https://app.datadoghq.com/monitors/manage`
+- **Filtros**: Buscar por tags `environment:production`, `project:ai4devs`
 ## 🔒 Seguridad Implementada
-
 ### Mejores Prácticas
 - **IAM**: Roles con permisos mínimos (principio de menor privilegio)
 - **S3**: Acceso público bloqueado por defecto
@@ -230,8 +270,15 @@ tags = {
 
 ### ✅ Monitoreo Activo
 - Métricas de CPU, memoria, disco y red
-- Alertas configurables desde Datadog
+- **4 Alertas automáticas** con notificaciones por email
+- Dashboard interactivo con visualizaciones en tiempo real
 - Tags organizacionales para filtrado
 - Logs centralizados y estructurados
+### ✅ Sistema de Alertas
+- **CPU Alto**: Notificación cuando supera 80% (warning: 70%)
+- **Instancia Caída**: Detección automática sin métricas por 10min
+- **Memoria Crítica**: Alerta cuando queda menos del 15% disponible
+- **Disco Lleno**: Notificación cuando supera 90% de uso
+- **Configuración avanzada**: Renotificación cada 60min, timeouts de 24h
 
 **Implementación completada exitosamente** ✅
